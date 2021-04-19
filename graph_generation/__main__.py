@@ -5,6 +5,7 @@ from io_graph_functions import save_to_file, read_from_file, draw_graph, write_g
 from instances_preliminaries import generate_triangulated_graph, get_canonical_ordering
 from shift_algorithm import combinatorial_embedding_to_pos
 from graph_algorithms import AAlgorithm,BAlgorithm, GraphDrawingAlgorithm
+import time
 
 def make_folder_for_instance(id):
     os.mkdir('instances/{id}/'.format(id=id))
@@ -34,9 +35,9 @@ def main():
     os.mkdir('instances/')
 
     # test on particular graph instance
-    alg = AAlgorithm()
-    g = alg.test_graph()
-    run_instance('test_instance', g)
+    # alg = AAlgorithm()
+    # g = alg.test_graph()
+    # run_instance('test_instance', g)
 
     # test on random generated graphs
     # for i in range(1, 20):
@@ -44,7 +45,12 @@ def main():
     #     g = generate_triangulated_graph(30)
     #     run_instance(instance_id, g)
 
+    instance_id = 'graph_{i}'.format(i=1)
+    g = generate_triangulated_graph(40)
+    run_instance(instance_id, g)
+
     return
 
-
+start_time = time.time()
 main()
+print("--- %s seconds ---" % (time.time() - start_time))
