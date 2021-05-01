@@ -51,8 +51,10 @@ def draw_graph(g, pos = None):
     if pos is None:
         pos = combinatorial_embedding_to_pos(g)
 
-    nx.draw(g, pos)
+    plt.grid('on')
+    nx.draw(g, pos,  with_labels=True)
     nx.draw_networkx_labels(g, pos, labels=dict([(n, str(n)) for n in g.nodes()]))
+
     plt.show()
 
 def save_graph_pic_to_file(g, output_filename, pos = None, color=None ):
@@ -61,9 +63,14 @@ def save_graph_pic_to_file(g, output_filename, pos = None, color=None ):
     color_map = []
     for node in g:
         if color is None:
-            color_map.append('blue')
+            color_map.append('yellow')
         else:
             color_map.append(color)
-    nx.draw(g, pos, node_color=color_map)
-    nx.draw_networkx_labels(g, pos, labels=dict([(n, str(n)) for n in g.nodes()]))
+
+    fig, ax = plt.subplots()
+    nx.draw(g, pos, ax=ax, node_color=color_map, with_labels=True)
+
+    limits = plt.axis('on')  # turns on axis
+    ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+
     plt.savefig(output_filename)

@@ -13,18 +13,29 @@ def make_folder_for_instance(id):
 
 def run_instance(instance_id, g, ordering=None):
     path = make_folder_for_instance(instance_id)
-    alg = AAlgorithm()
-    posAlg = alg.run(g, debug=True, ordering=ordering, output_path=path)
+    os.mkdir('{path}/steps'.format(path=path))
+    algA = AAlgorithm()
+    algB = BAlgorithm()
+
+    posAlgA = algA.run(g, debug=True, ordering=ordering, output_path=path)
+    posAlgb = algB.run(g, debug=True, ordering=ordering, output_path=path)
+
     posShift = combinatorial_embedding_to_pos(g)
 
-    save_graph_pic_to_file(g, '{path}/aalgorithm.png'.format(path=path),pos=posAlg)
-    write_graph_format_txt(g, posAlg, '{path}/{instance_id}_aalgorithm.txt'.format(path=path, instance_id=instance_id))
+    plt.clf()
+    save_graph_pic_to_file(g, '{path}/aalgorithm.png'.format(path=path),pos=posAlgA)
+    write_graph_format_txt(g, posAlgA, '{path}/{instance_id}_aalgorithm.txt'.format(path=path, instance_id=instance_id))
 
     save_graph_pic_to_file(g, '{path}/comparison_shift.png'.format(path=path), pos=posShift, color='red')
     write_graph_format_txt(g, posShift, '{path}/{instance_id}_shift.txt'.format(path=path, instance_id=instance_id))
 
     plt.clf()
     save_graph_pic_to_file(g, '{path}/shift.png'.format(path=path), pos=posShift)
+
+    plt.clf()
+    save_graph_pic_to_file(g, '{path}/balgorithm.png'.format(path=path), pos=posAlgb)
+    write_graph_format_txt(g, posAlgb, '{path}/{instance_id}_balgorithm.txt'.format(path=path, instance_id=instance_id))
+
 
 def main():
     # clear instances data from before
@@ -35,9 +46,9 @@ def main():
     os.mkdir('instances/')
 
     # test on particular graph instance
-    # alg = AAlgorithm()
-    # g = alg.test_graph()
-    # run_instance('test_instance', g)
+    alg = AAlgorithm()
+    g = alg.test_graph()
+    run_instance('test_instance', g)
 
     # test on random generated graphs
     # for i in range(1, 20):
@@ -46,7 +57,8 @@ def main():
     #     run_instance(instance_id, g)
 
     instance_id = 'graph_{i}'.format(i=1)
-    g = generate_triangulated_graph(40)
+    alg = BAlgorithm()
+    g = alg.test_graph()
     run_instance(instance_id, g)
 
     return

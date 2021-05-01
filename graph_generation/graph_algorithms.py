@@ -244,12 +244,12 @@ class GraphDrawingAlgorithm:
         return True
 
     # Printing calculated values of algorithm
-    def print_alg_stats(self, path=None):
+    def print_alg_stats(self, path=None, suffix='_'):
         if path is not None:
-            os.mkdir('{path}/calculations'.format(path=path))
+            os.mkdir('{path}/calculations_{suffix}'.format(path=path, suffix=suffix))
         print("*********** Canonical Ordering ********************")
         if path is not None:
-            f = open('{path}/calculations/ordering.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/ordering.txt'.format(path=path, suffix=suffix), "w")
         for value in self.ordering:
             print('{0} :  {1}'.format(value[0], value[1]))
             if path is not None:
@@ -260,7 +260,7 @@ class GraphDrawingAlgorithm:
 
         print("*********** Domino chains ********************")
         if path is not None:
-            f = open('{path}/calculations/domino_chains.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/domino_chains.txt'.format(path=path, suffix=suffix), "w")
         for key, value in self.DC.items():
             print('{0} :  {1}'.format(key, value))
             if path is not None:
@@ -270,7 +270,7 @@ class GraphDrawingAlgorithm:
 
         print("************* Dominators ******************")
         if path is not None:
-            f = open('{path}/calculations/domino_chains.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/domino_chains.txt'.format(path=path, suffix=suffix), "w")
         for key, value in self.dom.items():
             print('dom({0}) = {1}'.format(key, value))
             if path is not None:
@@ -280,7 +280,7 @@ class GraphDrawingAlgorithm:
 
         print("************* Stable ******************")
         if path is not None:
-            f = open('{path}/calculations/stable.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/stable.txt'.format(path=path, suffix=suffix), "w")
         for key, value in self.stable.items():
             print('stable({0}) = {1}'.format(key, value))
             if path is not None:
@@ -291,7 +291,7 @@ class GraphDrawingAlgorithm:
 
         print("*************** U Sets ****************")
         if path is not None:
-            f = open('{path}/calculations/u_sets.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/u_sets.txt'.format(path=path, suffix=suffix), "w")
         for key, value in self.u_set.items():
             print('U({0}) = {1}'.format(key, value))
             if path is not None:
@@ -301,7 +301,7 @@ class GraphDrawingAlgorithm:
 
         print("*************** Positions ****************")
         if path is not None:
-            f = open('{path}/calculations/positions.txt'.format(path=path), "w")
+            f = open('{path}/calculations_{suffix}/positions.txt'.format(path=path, suffix=suffix), "w")
         for key, value in self.pos.items():
             print('{0} = {1}'.format(key, value))
             if path is not None:
@@ -342,10 +342,9 @@ class AAlgorithm(GraphDrawingAlgorithm):
         self.init_calculations(g, ordering)
 
         if output_path is not None:
-            self.log_file = open('{output_path}/runtime.log'.format(output_path=output_path), "w")
+            self.log_file = open('{output_path}/runtime_a.log'.format(output_path=output_path), "w")
 
         if output_path is not None:
-            os.mkdir('{output_path}/steps'.format(output_path=output_path))
             os.mkdir('{output_path}/steps/aalgorithm'.format(output_path=output_path))
 
         if debug:
@@ -413,7 +412,7 @@ class AAlgorithm(GraphDrawingAlgorithm):
                 io_graph_functions.save_graph_pic_to_file(dg, '{path}/steps/aalgorithm/adding_{k}_{vk}.png'.format(vk=vk,k=k, path=output_path),pos=self.pos)
 
         if debug:
-            self.print_alg_stats(path=output_path)
+            self.print_alg_stats(path=output_path, suffix='_a')
 
         if self.log_file is not None:
             self.log_file.close()
@@ -430,7 +429,10 @@ class BAlgorithm(GraphDrawingAlgorithm):
     def run(self, g, debug=False, output_path=None, ordering=None):
         self.init_calculations(g, ordering)
         if output_path is not None:
-            os.mkdir('{output_path}/steps'.format(output_path=output_path))
+            os.mkdir('{output_path}/steps/balgorithm'.format(output_path=output_path))
+
+        if output_path is not None:
+            self.log_file = open('{output_path}/runtime_b.log'.format(output_path=output_path), "w")
 
         if debug:
             self.debug = debug
@@ -446,6 +448,9 @@ class BAlgorithm(GraphDrawingAlgorithm):
             wp1 = contour_neighbors[1]
             wq = contour_neighbors[-1]
             wq1 = contour_neighbors[-2]
+
+            if vk == 9:
+                d = 'd'
 
             if self.stable[vk]:
                 x_k = self.pos[wp][0]
@@ -466,14 +471,12 @@ class BAlgorithm(GraphDrawingAlgorithm):
                 r = self.find_r_for_vk(k)
                 wr = contour_neighbors[r]
                 wr_1 = contour_neighbors[r-1]
-                y_p = self.pos[wr][1] + 4 * (x_k-self.pos[wr][0]) - self.slack(wr_1, wr)
+                y_p = self.pos[wr][1] + 4 * (self.pos[wr][0] - x_k) - self.slack(wr_1, wr)
 
-                if vk == 13:
-                    d= 'd'
                 if r == 1 or (not self.stable[vk] and r == 2):
                     y_p = y_p + 1
 
-                y_k = max(y_p, self.pos[wq][1])
+                y_k = max(y_p, self.pos[wq1][1])
 
             self.pos[vk] = (x_k, y_k)
 
@@ -484,6 +487,11 @@ class BAlgorithm(GraphDrawingAlgorithm):
                 for l in contour_neighbors:
                     dg.add_edge(vk, l)
                 print('Node: {node}, neighbours: {neighbours}, outer_face: {outer_face}'.format(node=vk, neighbours=contour_neighbors, outer_face=self.contour))
+                if self.log_file is not None:
+                    self.log_file.write(
+                        'Node: {node}, neighbours: {neighbours}, outer_face: {outer_face}\n'.format(node=vk,
+                                                                                                    neighbours=contour_neighbors,
+                                                                                                    outer_face=self.contour))
 
             self.update_outer_face(k)
 
@@ -492,17 +500,19 @@ class BAlgorithm(GraphDrawingAlgorithm):
 
                 if debug and output_path:
                     plt.clf()
-                    io_graph_functions.save_graph_pic_to_file(dg, '{path}/steps/aalgorithm/adding_{k}_{vk}.png'.format(
+                    io_graph_functions.save_graph_pic_to_file(dg, '{path}/steps/balgorithm/adding_{k}_{vk}.png'.format(
                         vk=vk, k=k, path=output_path), pos=self.pos)
 
         if debug:
-            self.print_alg_stats(path=output_path)
+            self.print_alg_stats(path=output_path, suffix='_b')
 
         if self.log_file is not None:
             self.log_file.close()
 
+        return self.pos
+
     def slack(self, u, v):
-        return 4 * (self.pos[u][0]-self.pos[v][0]) + (self.pos[u][1]-self.pos[v][1])
+        return 4 * (self.pos[v][0]-self.pos[u][0]) + (self.pos[v][1]-self.pos[u][1])
 
     def find_r_for_vk(self, k):
         vk, contour_neighbors = self.ordering[k]
@@ -510,7 +520,13 @@ class BAlgorithm(GraphDrawingAlgorithm):
         if deg_v_k == 2:
             return 1 # Index in contour neighbors vector
         else:
-            for r in  range(2, len(contour_neighbors)):
-                if self.stable[contour_neighbors[r]]:
+            begin = 1 if self.stable[vk] else 2
+            for r in  range(begin, len(contour_neighbors)):
+                is_r = True
+                for r1 in range(r, len(contour_neighbors)):
+                    if not self.stable[contour_neighbors[r1]]:
+                        is_r = False
+                        break
+                if is_r:
                     return r
         return len(contour_neighbors)-1
